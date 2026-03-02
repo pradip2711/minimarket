@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini-Market | 10 Minute Delivery</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --blinkit-green: #0c831f; --bg: #f8f8f8; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 100px; }
+        .header { background: white; padding: 10px 5%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; position: sticky; top: 0; z-index: 100; }
+        .logo { font-weight: 800; color: #f7d51b; font-size: 1.5rem; text-shadow: 1px 1px black; }
+        .container { padding: 20px 5%; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
+        .card { background: white; border-radius: 12px; padding: 15px; text-align: center; border: 1px solid #eee; position: relative; }
+        .card img { width: 100%; height: 120px; object-fit: contain; }
+        .checkout-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 500px; background: var(--blinkit-green); color: white; padding: 15px; border-radius: 12px; display: none; justify-content: space-between; align-items: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 1000; }
+        .btn-add { background: #f7fff9; color: var(--blinkit-green); border: 1px solid var(--blinkit-green); padding: 5px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-remove { background: #fff5f5; color: #e74c3c; border: 1px solid #e74c3c; padding: 5px 10px; border-radius: 5px; cursor: pointer; margin-left: 5px; }
+    </style>
+</head>
+<body>
+    <header class="header">
+    <div class="logo">mini-market</div>
+    
+    <form action="/" method="GET" style="flex-grow: 1; margin: 0 20px; max-width: 400px; display: flex;">
+        <input type="text" name="q" placeholder="Search for groceries..." 
+               value="{{ query|default:'' }}"
+               style="width: 100%; padding: 8px 15px; border: 1px solid #ddd; border-radius: 20px 0 0 20px; outline: none;">
+        <button type="submit" style="padding: 8px 15px; background: #0c831f; color: white; border: none; border-radius: 0 20px 20px 0; cursor: pointer;">
+            <i class="fa fa-search"></i>
+        </button>
+    </form>
+    </header>
+
+    <div class="container">
+        {% for product in products %}
+        <div class="card">
+            <img src="{{ product.image_url }}" onerror="this.src='https://placehold.co/200x200?text={{ product.name }}'">
+            <div style="font-weight: 600; margin-top: 10px;">{{ product.name }}</div>
+            <div style="color: var(--blinkit-green); font-weight: 700; margin: 5px 0;">₹{{ product.price }}</div>
+            <button class="btn-add" onclick="changeCart(1, {{ product.price }})">ADD</button>
+            <button class="btn-remove" onclick="changeCart(-1, {{ product.price }})">✖</button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div id="checkout-bar" class="checkout-bar">
+        <div><span id="cart-qty">0</span> Items | <span id="cart-total">₹0</span></div>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="resetCart()" style="background:none; border:1px solid white; color:white; padding:5px 10px; border-radius:5px; cursor:pointer;">Cancel</button>
+            <button onclick="goToCheckout()" style="background:white; color:var(--blinkit-green); border:none; padding:8px 15px; border-radius:5px; font-weight:bold; cursor:pointer;">Checkout</button>
+        </div>
+    </div>
+
+    <script>
+        let qty = 0; let total = 0;
+        function changeCart(amt, price) {
+            qty = Math.max(0, qty + amt);
+            total = Math.max(0, total + (amt * price));
+            document.getElementById('checkout-bar').style.display = qty > 0 ? 'flex' : 'none';
+            document.getElementById('cart-qty').innerText = qty;
+            document.getElementById('cart-total').innerText = '₹' + total.toFixed(2);
+        }
+        function resetCart() { qty = 0; total = 0; changeCart(0, 0); }
+        function goToCheckout() {
+            // Save total to localStorage to use on the next page
+            localStorage.setItem('market_total', total.toFixed(2));
+            window.location.href = "/checkout/";
+        }
+    </script>
+</body>
+</html>
